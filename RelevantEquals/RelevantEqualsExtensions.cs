@@ -18,7 +18,9 @@ namespace XBy2.RelevantEquals
             return propSelectors.All(selector => {
                 var expected = selector.Compile().Invoke(thiz);
                 var actual = selector.Compile().Invoke(that);
-                return expected.Equals(actual);
+                return expected == null || actual == null
+                    ? expected == actual
+                    : expected.Equals(actual);
             });
         }
 

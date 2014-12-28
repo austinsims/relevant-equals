@@ -10,6 +10,7 @@ namespace XBy2.RelevantEquals {
         public string Norf { get; set; }
         public int Baz { get; set; }
         public double Qux { get; set; }
+        public int? Nullable { get; set; }
     }
 
     [TestClass]
@@ -19,7 +20,8 @@ namespace XBy2.RelevantEquals {
             Bar = "Haai",
             Norf = "Tjike",
             Baz = 33,
-            Qux = 8.9
+            Qux = 8.9,
+            Nullable = null
         };
 
         private readonly SomeClass b = new SomeClass {
@@ -27,25 +29,44 @@ namespace XBy2.RelevantEquals {
             Bar = "Haai",
             Norf = "What?",
             Baz = 33,
-            Qux = 17.4
+            Qux = 17.4,
+            Nullable = null
         };
 
         [TestMethod]
         public void Positive() {
-            Assert.IsTrue(a.RelevantEquals<SomeClass>(b, new Expression<Func<SomeClass, object>>[] {
+            var propSelectors = new Expression<Func<SomeClass, object>>[] {
                 (sc) => sc.Foo,
                 (sc) => sc.Bar,
                 (sc) => sc.Baz,
-            }));
+            };
+            Assert.IsTrue(a.RelevantEquals(b, propSelectors));
+
+            // make sure RelevantEquals is symmetric
+            Assert.IsTrue(b.RelevantEquals(a, propSelectors));
+
+            // make sure RelevantEquals is reflexive
+            Assert.IsTrue(a.RelevantEquals(a, propSelectors));
+            Assert.IsTrue(b.RelevantEquals(b, propSelectors));
         }
 
         [TestMethod]
         public void Negative() {
-            Assert.IsFalse(a.RelevantEquals<SomeClass>(b, new Expression<Func<SomeClass, object>>[] {
+            Assert.IsFalse(a.RelevantEquals(b, new Expression<Func<SomeClass, object>>[] {
                 (sc) => sc.Foo,
                 (sc) => sc.Bar,
                 (sc) => sc.Baz,
                 (sc) => sc.Qux,
+            }));
+        }
+
+        // Make sure nullable properties are handled properly
+        [TestMethod]
+        public void NullableProperty()
+        {
+            Assert.IsTrue(a.RelevantEquals(b, new Expression<Func<SomeClass, object>>[]
+            {
+                (sc) => sc.Nullable
             }));
         }
 
